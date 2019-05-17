@@ -17,17 +17,21 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Enable default lighting
+        sceneView.autoenablesDefaultLighting = true
+        
         // Set the view's delegate
         sceneView.delegate = self
         
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
         
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
+        // Show the world origin
+        sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
-        // Set the scene to the view
-        sceneView.scene = scene
+        // Place campuses
+        placeCampus()
+        placeCampusInCode()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,30 +50,51 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
+}
 
-    // MARK: - ARSCNViewDelegate
+// MARK: - Placing 3D Objects
+extension ViewController {
+    func placeCampus() {
+        let scene = SCNScene(named: "art.scnassets/campus.scn")!
+        let node = scene.rootNode.clone()
+        node.position = SCNVector3(-2, -0.5, -2)
+        sceneView.scene.rootNode.addChildNode(node)
+    }
     
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+    func placeCampusInCode() {
+        let building = getBuildingNode()
+        
+        let campus = SCNNode()
+        campus.addChildNode(building)
+        campus.position = SCNVector3(2, -0.5, -2)
+        
+        let grass = getGrassNode()
+        grass.position.y = -0.501
+        campus.addChildNode(grass)
+        
+        sceneView.scene.rootNode.addChildNode(campus)
+    }
+    
+    func getBuildingNode() -> SCNNode {
+        let material = SCNMaterial()
+        material.diffuse.contents = UIImage(named: "bricks")
+        
+        let box = SCNBox(width: 3, height: 1, length: 1, chamferRadius: 0)
+        box.materials = [material]
+        
         let node = SCNNode()
-     
+        node.geometry = box
+        
         return node
     }
-*/
     
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
+    func getGrassNode() -> SCNNode {
+        let plane = SCNPlane(width: 4, height: 2)
+        plane.firstMaterial?.diffuse.contents = UIImage(named: "grass")
         
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
+        let grass = SCNNode(geometry: plane)
+        grass.eulerAngles.x = -.pi / 2
         
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
+        return grass
     }
 }
